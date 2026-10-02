@@ -1,11 +1,17 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 import MaterialChat from "./components/MaterialChat";
+import AdminUsers from "./pages/AdminUsers";
 import Login from "./pages/Login";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
     Boolean(localStorage.getItem("access_token"))
+  );
+
+  const [currentUser, setCurrentUser] = useState(null);
+  const [currentView, setCurrentView] = useState(
+    window.location.pathname === "/admin/users" ? "admin" : "dashboard"
   );
 
   const [selectedMaterial, setSelectedMaterial] = useState(null);
@@ -21,6 +27,31 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState("");
+
+  // ==========================================
+  // Fetch Current User
+  // ==========================================
+
+  const fetchCurrentUser = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
+
+      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/me", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setCurrentUser(userData);
+      }
+    } catch (err) {
+      console.error("Failed to fetch current user profile:", err);
+    }
+  }, []);
 
   // ==========================================
   // Fetch Materials
@@ -65,14 +96,38 @@ function App() {
   };
 
   // ==========================================
-  // Load Materials After Login
+  // Load Data After Login
   // ==========================================
 
   useEffect(() => {
     if (isLoggedIn) {
       fetchMaterials();
+      fetchCurrentUser();
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, fetchCurrentUser]);
+
+  // Handle URL change / back button
+  useEffect(() => {
+    const handlePopState = () => {
+      if (window.location.pathname === "/admin/users") {
+        setCurrentView("admin");
+      } else {
+        setCurrentView("dashboard");
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Navigation helpers
+  const navigateTo = (view, path = "/") => {
+    setCurrentView(view);
+    setSelectedMaterial(null);
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, "", path);
+    }
+  };
 
   // ==========================================
   // Logout
@@ -82,8 +137,13 @@ function App() {
     localStorage.removeItem("access_token");
 
     setIsLoggedIn(false);
+    setCurrentUser(null);
     setSelectedMaterial(null);
     setMaterials([]);
+    setCurrentView("dashboard");
+    if (window.location.pathname !== "/") {
+      window.history.pushState({}, "", "/");
+    }
   };
 
   // ==========================================
@@ -101,7 +161,6 @@ function App() {
       return;
     }
 
-    // Only PDF files
     if (selectedFile.type !== "application/pdf") {
       setFile(null);
       setUploadError("Only PDF files are allowed.");
@@ -121,13 +180,11 @@ function App() {
     setUploadError("");
     setUploadSuccess("");
 
-    // Validate title
     if (!title.trim()) {
       setUploadError("Please enter a title.");
       return;
     }
 
-    // Validate file
     if (!file) {
       setUploadError("Please select a PDF file.");
       return;
@@ -166,25 +223,20 @@ function App() {
         );
       }
 
-      // Success
       setUploadSuccess("Study material uploaded successfully!");
 
-      // Clear form
       setTitle("");
       setFile(null);
 
-      // Reset file input
-      document.getElementById("material-file").value = "";
+      const fileInput = document.getElementById("material-file");
+      if (fileInput) fileInput.value = "";
 
-      // Close upload form after a short delay
       setTimeout(() => {
         setShowUpload(false);
         setUploadSuccess("");
       }, 1200);
 
-      // Refresh materials
       await fetchMaterials();
-
     } catch (err) {
       console.error("Upload error:", err);
       setUploadError(err.message);
@@ -218,44 +270,72 @@ function App() {
     );
   }
 
+  const isAdminUser =
+    currentUser?.is_admin || currentUser?.role === "admin";
+
+  // Navbar component reused across views
+  const renderNavbar = () => (
+    <nav className="navbar">
+      <div className="logo" onClick={() => navigateTo("dashboard", "/")} style={{ cursor: "pointer" }}>
+        CampusMind AI
+      </div>
+
+      <div className="nav-links">
+        <button
+          className={currentView === "dashboard" ? "active-nav" : ""}
+          onClick={() => navigateTo("dashboard", "/")}
+        >
+          Dashboard
+        </button>
+
+        <button
+          onClick={() => {
+            navigateTo("dashboard", "/");
+            setShowUpload(true);
+            setUploadError("");
+            setUploadSuccess("");
+          }}
+        >
+          My Materials
+        </button>
+
+        {isAdminUser && (
+          <button
+            className={`admin-nav-btn ${currentView === "admin" ? "active-nav" : ""}`}
+            onClick={() => navigateTo("admin", "/admin/users")}
+          >
+            👑 Admin Users
+          </button>
+        )}
+
+        <button onClick={handleLogout}>Logout</button>
+      </div>
+    </nav>
+  );
+
+  // ==========================================
+  // Admin Page View
+  // ==========================================
+
+  if (currentView === "admin") {
+    return (
+      <div className="app">
+        {renderNavbar()}
+        <AdminUsers
+          currentUser={currentUser}
+          onNavigateBack={() => navigateTo("dashboard", "/")}
+        />
+      </div>
+    );
+  }
+
   // ==========================================
   // Dashboard
   // ==========================================
 
   return (
     <div className="app">
-
-      {/* ================= NAVBAR ================= */}
-
-      <nav className="navbar">
-
-        <div className="logo">
-          CampusMind AI
-        </div>
-
-        <div className="nav-links">
-
-          <button>
-            Dashboard
-          </button>
-
-          <button
-            onClick={() => {
-              setShowUpload(true);
-              setUploadError("");
-              setUploadSuccess("");
-            }}
-          >
-            My Materials
-          </button>
-
-          <button onClick={handleLogout}>
-            Logout
-          </button>
-
-        </div>
-
-      </nav>
+      {renderNavbar()}
 
 
       {/* ================= MAIN ================= */}

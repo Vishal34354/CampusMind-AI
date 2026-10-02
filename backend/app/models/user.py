@@ -40,6 +40,20 @@ class User(Base):
         nullable=False,
     )
 
+    role: Mapped[str] = mapped_column(
+        String(20),
+        default="user",
+        server_default="user",
+        nullable=False,
+    )
+
+    is_admin: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

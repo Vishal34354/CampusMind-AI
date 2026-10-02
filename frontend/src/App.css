@@ -87,6 +87,28 @@ textarea {
   color: #1d4ed8;
 }
 
+.nav-links button.active-nav {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.nav-links button.admin-nav-btn {
+  color: #7e22ce;
+  background: rgba(126, 34, 206, 0.06);
+}
+
+.nav-links button.admin-nav-btn:hover {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.nav-links button.admin-nav-btn.active-nav {
+  background: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid #d8b4fe;
+}
+
 
 /* =========================
    Main Container
@@ -625,4 +647,98 @@ textarea {
   .upload-button {
     width: 100%;
   }
+}
+
+
+/* =========================
+   Login Page
+========================= */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+  padding: 24px;
+}
+
+.login-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 42px 36px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.login-card h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+  font-weight: 800;
+  color: #1d4ed8;
+  text-align: center;
+}
+
+.login-card p {
+  margin: 0 0 32px;
+  font-size: 15px;
+  color: #64748b;
+  text-align: center;
+}
+
+.login-card form > div {
+  margin-bottom: 20px;
+}
+
+.login-card label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.login-card input[type="email"],
+.login-card input[type="password"] {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #172033;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.login-card input[type="email"]:focus,
+.login-card input[type="password"]:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.login-card button[type="submit"] {
+  width: 100%;
+  padding: 14px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s ease;
+}
+
+.login-card button[type="submit"]:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+
+.login-card button[type="submit"]:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
 }

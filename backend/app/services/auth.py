@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.security import hash_password, verify_password
 from app.models.user import User
 from app.repositories.user import UserRepository
@@ -16,10 +17,18 @@ class AuthService:
         if existing_user:
             raise ValueError("Email is already registered")
 
+        is_admin = False
+        role = "user"
+        if settings.ADMIN_EMAIL and data.email.strip().lower() == settings.ADMIN_EMAIL.strip().lower():
+            is_admin = True
+            role = "admin"
+
         user = self.repository.create(
             full_name=data.full_name,
             email=data.email,
             hashed_password=hash_password(data.password),
+            role=role,
+            is_admin=is_admin,
         )
 
         return user

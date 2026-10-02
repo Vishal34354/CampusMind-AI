@@ -6,6 +6,7 @@ from loguru import logger
 
 from app.core.config import settings
 from app.core.logger import configure_logger
+from app.routers.admin import router as admin_router
 from app.routers.auth import router as auth_router
 from app.routers.health import router as health_router
 from app.routers.study_material import router as study_material_router
@@ -65,6 +66,12 @@ app.include_router(
     study_material_router,
     prefix=settings.API_PREFIX,
     tags=["Study Materials"],
+)
+
+app.include_router(
+    admin_router,
+    prefix=settings.API_PREFIX,
+    tags=["Admin"],
 )
 
 
